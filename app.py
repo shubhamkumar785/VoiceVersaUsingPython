@@ -10,8 +10,8 @@ import time
 app = Flask(__name__)
 
 # OpenRouter API Key and Base
-openai.api_key = "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"
-openai.api_base = "https://openrouter.ai/api/v1"
+openai.api_key = ""
+openai.api_base = ""
 
 # Text-to-speech engine initialization
 engine = pyttsx3.init()

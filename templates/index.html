@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice Versa Assistant</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- Bootstrap CDN for responsive layout & components -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+    }
+    a { color: #66ff66; text-decoration: none; }
+    a:hover { color: #39c949; }
+
+    /* Navbar */
+    .navbar {
+      background-color: #1e1e1e;
+      border-bottom: 2px solid #333;
+    }
+    .navbar-brand { color: #66ff66; font-weight: 600; }
+    .navbar-brand:hover { color: #39c949; }
+
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, #1e1e1e, #2c2c2c);
+      padding: 100px 20px;
+      text-align: center;
+      border-bottom: 2px solid #333;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      color: #66ff66;
+      margin-bottom: 20px;
+    }
+    .hero p {
+      font-size: 1.2rem;
+      color: #aaa;
+    }
+
+    /* Chat Section */
+    .chat-section {
+      padding: 40px 20px;
+      background-color: #121212;
+    }
+    .chat-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+    #chat-box {
+      height: 400px;
+      overflow-y: auto;
+      border: 1px solid #333;
+      padding: 15px;
+      background: #151515;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .message {
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      opacity: 0;
+      animation: fadeIn 0.5s forwards;
+    }
+    .user-message {
+      background-color: #004d00;
+      text-align: right;
+      color: #66ff66;
+      align-self: flex-end;
+    }
+    .bot-message {
+      background-color: #333;
+      color: #66ff66;
+      text-align: left;
+      align-self: flex-start;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* Chat input area */
+    #query {
+      width: 80%;
+      padding: 12px;
+      border: 1px solid #333;
+      border-radius: 25px;
+      background: #222;
+      color: #fff;
+      font-size: 1rem;
+    }
+    #send-btn, #mic-btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-left: 10px;
+    }
+    #send-btn {
+      background-color: #66ff66;
+      color: #121212;
+    }
+    #send-btn:hover { background-color: #39c949; }
+    #mic-btn {
+      background-color: #ff5722;
+      color: #fff;
+    }
+    #mic-btn:hover { background-color: #f44336; }
+
+    /* Footer */
+    footer {
+      background-color: #1e1e1e;
+      padding: 20px;
+      text-align: center;
+      font-size: 0.9rem;
+      border-top: 2px solid #333;
+      margin-top: 40px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" href="#">Voice Versa</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon" style="color:#66ff66;"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>Welcome to Voice Versa Assistant</h1>
+      <p>Your AI companion for voice and chat interactions, powered by free APIs.</p>
+    </div>
+  </section>
+
+  <!-- Chat Section -->
+  <section class="chat-section">
+    <div class="container chat-container">
+      <div id="chat-box" class="d-flex flex-column"></div>
+      <div class="d-flex justify-content-center align-items-center">
+        <input type="text" id="query" name="query" placeholder="Ask something..." required>
+        <button id="send-btn">Send</button>
+        <button type="button" id="mic-btn" onclick="startListening()">🎤</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Voice Versa Assistant. All Rights Reserved.</p>
+  </footer>
+
+  <!-- JavaScript -->
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    const sendBtn = document.getElementById("send-btn");
+    const chatBox = document.getElementById("chat-box");
+
+    // Speech-to-Text setup (Web Speech API)
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    function startListening() {
+      recognition.start();
+    }
+
+    recognition.onresult = (event) => {
+      const voiceQuery = event.results[0][0].transcript;
+      document.getElementById("query").value = voiceQuery;
+      sendMessage(voiceQuery);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Error in speech recognition: ", event.error);
+    };
+
+    // Text-to-Speech setup (Web Speech API)
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      utterance.pitch = 1;
+      utterance.rate = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Send message to backend and update chat
+    async function sendMessage(query) {
+      // Append user's message in chat box
+      chatBox.innerHTML += `<div class="message user-message">You: ${query}</div>`;
+
+      const response = await fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `query=${encodeURIComponent(query)}`
+      });
+
+      const data = await response.json();
+      const botResponse = data.response;
+
+      // Append bot's response in chat box
+      chatBox.innerHTML += `<div class="message bot-message">Bot: ${botResponse}</div>`;
+      // Speak bot's response
+      speak(botResponse);
+      // Clear the input field
+      document.getElementById("query").value = "";
+      // Scroll chat to bottom
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Form submission handler for text-based queries
+    document.getElementById("query").addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const query = document.getElementById("query").value;
+        sendMessage(query);
+      }
+    });
+    
+    sendBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const query = document.getElementById("query").value;
+      sendMessage(query);
+    });
+  </script>
+</body>
+</html>
